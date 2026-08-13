@@ -1,0 +1,30 @@
+venv/
+env/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+/.vscode/
+.DS_Store
+*.sqlite3
+*.log
+node_modules/
+dist/
+build/
+*.env
+*.pem
+secrets/
+*.iml
+*.class
+Thumbs.db
+*.csv
+*.bak
+
+# IDE files
+.idea/
+
+# macOS
+.Spotlight-V100
+.Trashes
+
+# JetBrains
+out/

@@ -1,0 +1,117 @@
+#version: '07_07_2026'
+
+services:
+  # 1. Le Data Lake (Simule Amazon S3)
+  minio:
+    image: minio/minio
+    container_name: minio-datalake
+    ports:
+      - "9000:9000" # API Port
+      - "9001:9001" # Console UI Port
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "password"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - datalake_net
+
+  # 2. Le moteur de calcul + Notebook 
+  spark-jupyter:
+    image: jupyter/pyspark-notebook:latest
+    container_name: spark-master
+    ports:
+      - "8888:8888" # Jupyter Lab UI
+      - "4040:4040" # Spark UI (Monitoring jobs)
+      - "8000:8000"   # serveur de métriques
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=password
+    volumes:
+      - ./work:/home/jovyan/work
+    depends_on:
+      - minio
+    networks:
+      - datalake_net
+ 
+  # 3. AIRFLOW
+  airflow:
+    image: apache/airflow:2.7.1
+    container_name: airflow
+    ports:
+      - "8082:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=tp_bigdata_airflow
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create
+      --username admin
+      --password admin
+      --firstname Admin
+      --lastname User
+      --role Admin
+      "
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./work:/home/jovyan/work
+    networks:
+      - datalake_net
+
+  # 4. ZOOKEEPER (Gestionnaire de cluster pour Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - datalake_net
+
+  # 5. KAFKA BROKER (Le système de messagerie de streaming)
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092" # Port accessible depuis l'hôte extérieur (Script Python)
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Configuration double écoute : 
+      # - localhost:9092 pour le script producteur Python exécuté sur la machine locale
+      # - kafka:29092 pour l'accès interne depuis le container Jupyter/Spark
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - datalake_net
+  
+  # 6. GRAFANA (Monitoring / Dashboard)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
+    networks:
+      - datalake_net
+
+
+volumes:
+  minio_data:
+
+networks:
+  datalake_net:
+    driver: bridge
