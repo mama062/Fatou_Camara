@@ -121,6 +121,10 @@
   .globe-wrap{ position:relative; }
   .globe-svg{ position:absolute; top:50%; right:-10%; width:340px; height:340px; transform:translateY(-50%); opacity:.35; }
   .info-cards{ position:relative; z-index:2; display:flex; flex-direction:column; gap:12px; }
+  @media (max-width:480px){
+    .info-cards{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .info-card{ width:100%; }
+  }
   .info-card{ background:var(--navy-2); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:13px 16px; display:flex; align-items:center; gap:12px; transition: background .3s ease; }
   .info-card .ic{ width:36px; height:36px; border-radius:9px; background:rgba(217,162,75,.15); color:var(--gold); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .info-card .k{ font-size:.72rem; color:var(--on-dark-muted); margin-bottom:1px; }
@@ -281,7 +285,9 @@
     .cta-row{ flex-direction:column; align-items:center; }
     .btn, .cv-btn{ width:100%; justify-content:center; }
     .globe-svg{ display:none; }
-    .stats-strip-grid{ grid-template-columns:1fr; }
+    .stats-strip-grid{ grid-template-columns:repeat(2,1fr); }
+    .stat-item{ border-right:none; border-bottom:1px solid rgba(255,255,255,.04); padding:14px 12px; }
+    .stat-item:nth-child(2n){ border-bottom:none; }
     .skills-grid{ grid-template-columns:repeat(2,1fr); gap:12px; }
     .proj-tile{ flex:0 0 78vw; }
     .proj-carousel .carousel-btn{ display:none; }
@@ -292,6 +298,14 @@
     .edu-node{ padding-bottom:20px; }
     .lang-row{ justify-content:flex-start; }
     .wrap{ padding:0 14px; }
+    /* Footer mobile adjustments */
+    footer .footer-main{ grid-template-columns:1fr !important; gap:18px; align-items:start; padding-top:18px !important; }
+    footer .footer-contact-card, footer .contact-list, footer .quote-block, footer .footer-social{ width:100%; }
+    footer .footer-contact-card{ padding:14px; }
+    footer .contact-list{ display:flex; flex-direction:column; gap:10px; }
+    footer .contact-row{ align-items:center; gap:10px; }
+    footer .footer-social{ justify-content:flex-start; margin-top:8px; }
+    footer .footer-note{ text-align:center; padding:12px 0; }
   }
 </style>
 </head>
