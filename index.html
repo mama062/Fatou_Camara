@@ -366,7 +366,7 @@
       <a href="#contact"><svg class="nav-icon" aria-hidden="true"><use href="#i-mail"/></svg>Contact</a>
     </nav>
     <div style="display:flex; align-items:center; gap:14px;">
-      <a class="cv-btn" id="cv-download-nav" href="docs/Fatou_Camara_CV.pdf" download="Fatou_Camara_CV.pdf" aria-label="Télécharger le CV de Fatou Camara"><svg class="icon" style="width:15px;height:15px"><use href="#i-download"/></svg>Télécharger CV</a>
+      <a class="cv-btn" id="cv-download-nav" href="docs/Fatou_Camara_CV.pdf" download="Fatou_Camara_CV.pdf" target="_blank" rel="noopener" aria-label="Télécharger le CV de Fatou Camara"><svg class="icon" style="width:15px;height:15px"><use href="#i-download"/></svg>Télécharger CV</a>
       <button class="theme-toggle" id="theme-toggle" title="Basculer le thème" aria-label="Basculer le thème clair/sombre">
         <svg class="icon" id="theme-icon" style="width:17px;height:17px"><use href="#i-moon"/></svg>
       </button>
@@ -388,7 +388,7 @@
         <p class="lede">Je conçois des solutions géospatiales et data-driven pour mieux comprendre le territoire sénégalais et aider à la décision : santé publique, agriculture, gouvernance.</p>
         <div class="cta-row">
           <a href="#projets" class="btn btn-gold"><svg class="icon" style="width:16px;height:16px"><use href="#i-arrow"/></svg>Voir mes projets</a>
-          <a href="docs/Fatou_Camara_CV.pdf" class="btn btn-outline-dark" id="cv-download" download="Fatou_Camara_CV.pdf" aria-label="Télécharger le CV de Fatou Camara"><svg class="icon" style="width:16px;height:16px"><use href="#i-download"/></svg>Télécharger mon CV</a>
+          <a href="docs/Fatou_Camara_CV.pdf" class="btn btn-outline-dark" id="cv-download" download="Fatou_Camara_CV.pdf" target="_blank" rel="noopener" aria-label="Télécharger le CV de Fatou Camara"><svg class="icon" style="width:16px;height:16px"><use href="#i-download"/></svg>Télécharger mon CV</a>
         </div>
         <div class="hero-social">
           <a href="mailto:cfatou167@gmail.com" title="Email"><svg class="icon" style="width:15px;height:15px"><use href="#i-mail"/></svg></a>
@@ -748,13 +748,23 @@
     });
   });
 
-  // CV download
-    // CV download: use a real file so mobile browsers can download it reliably.
+  // CV download: use a real file and a mobile-safe fallback.
   const cvHref = 'docs/Fatou_Camara_CV.pdf';
   const cvLinks = [document.getElementById('cv-download'), document.getElementById('cv-download-nav')].filter(Boolean);
   cvLinks.forEach(link => {
     link.setAttribute('href', cvHref);
     link.setAttribute('download', 'Fatou_Camara_CV.pdf');
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener');
+      link.addEventListener('click', (event) => {
+        if (!('download' in document.createElement('a')) || !window.isSecureContext) {
+          event.preventDefault();
+          window.open(cvHref, '_blank', 'noopener');
+        }
+      }, { once: true });
+    }
   });
 
   // Project carousel
